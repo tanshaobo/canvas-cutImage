@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            #img-box{max-width: 500px;max-height: 500px;position: relative;border:1px solid #333333;}
+            #source-img{display: block;max-width: 100%;max-height: 100%;}
+            #cut-box{position: absolute;width: 100px;height: 100px;background: rgba(255,255,255,.4);top: 0;left: 0;min-width: 100px;min-height: 100px;}
+            #adjust-btn{position: absolute;top: 80px;left: 80px;bottom: 0;right: 0;width: 20px;height: 20px;cursor: se-resize;}
+        </style>
+    </head>
+    <body>
+        <input type="file" onchange="preview(this)" id="input">
+            <div id="img-box">
+                <img src="" id="source-img"/>
+                <div id="cut-box"><div id="adjust-btn"></div></div>  
+            </div>
+            <img src="" id="cuted-img">
+            <button type="button" id="cut-btn">裁剪</button>
+        <script>
+            cutImage();
+            function cutImage(size) {
+                let img_box, source_img, cut_box, cuted_img, cut_btn, dataUrl, adjust_btn,cuted_width;
+                img_box = document.getElementById("img-box");
+                source_img = document.getElementById("source-img");
+                cut_box = document.getElementById("cut-box");
+                cuted_img = document.getElementById("cuted-img");
+                cut_btn = document.getElementById("cut-btn");
+                adjust_btn = document.getElementById("adjust-btn");
+                cuted_width=size||150;
+                //选择裁剪区域
+                cut_box.onmousedown = function () {
+                    cut_box.onmousemove = function (ex) {
+                        let x = ex.pageX - img_box.offsetLeft - cut_box.offsetWidth / 2;
+                        let y = ex.pageY - img_box.offsetTop - cut_box.offsetHeight / 2;
+                        if (x < 0) {
+                            x = 0;
+                        } else if (x > img_box.clientWidth - cut_box.offsetWidth) {
+                            x = img_box.clientWidth - cut_box.offsetWidth;
+                        }
+                        if (y < 0) {
+                            y = 0;
+                        } else if (y > img_box.clientHeight - cut_box.offsetHeight) {
+                            y = img_box.clientHeight - cut_box.offsetHeight;
+                        }
+                        cut_box.style.left = x + "px";
+                        cut_box.style.top = y + "px";
+                    };
+                };
+                cut_box.onmouseup = function () {
+                    cut_box.onmousemove = null;
+                };
+                //调节裁剪区域
+                adjust_btn.onmousedown = function (event) {
+                    console.log(source_img.offsetWidth, source_img.offsetHeight);
+                    adjust_btn.onmousemove = function (ex) {
+                        adjust_btn.style.width = source_img.clientWidth + "px";
+                        adjust_btn.style.height = source_img.clientHeight + "px";
+                        adjust_btn.style.left = 0;
+                        adjust_btn.style.top = 0;
+                        let x = ex.pageX - img_box.offsetLeft - cut_box.offsetLeft;
+                        let y = ex.pageY - img_box.offsetTop - cut_box.offsetTop;
+                        let x1 = cut_box.offsetWidth - 50;
+                        let y1 = cut_box.offsetHeight - 50;
+                        let a;
+                        if (x + y - x1 - y1 > 0) {
+                            a = 1;
+                        } else {
+                            a = -1;
+                        }
+                        a++;
+                        let min_cut_box = x > y ? x : y;
+                        let max_cut_box = source_img.clientWidth > source_img.clientHeight ? source_img.clientHeight : sourse_img.clientWidth;
+                        let offset = min_cut_box > max_cut_box ? max_cut_box : min_cut_box;
+                        cut_box.style.width = (offset += a) + "px";
+                        cut_box.style.height = (offset += a) + "px";
+                    };
+                    event.stopPropagation();
+                };
+                adjust_btn.onmouseup = function () {
+                    adjust_btn.onmousemove = null;
+                    adjust_btn.style.width = "20px";
+                    adjust_btn.style.height = "20px";
+                    adjust_btn.style.left = "unset";
+                    adjust_btn.style.top = "unset";
+                };
+
+                //调节在裁剪区域内的光标
+                cut_box.onmouseenter = function () {
+                    cut_box.style.cursor = "move";
+                };
+                cut_box.onmouseout = function () {
+                    cut_box.style.cursor = "auto";
+                };
+                //获取图片的原始宽高
+                function getImageSourceSize(object) {
+                    let a = new Array();
+                    if (object.naturalWidth) {
+                        a[0] = object.naturalWidth;
+                        a[1] = object.naturalHeight;
+                    } else {
+                        let newImage = new Image();
+                        newImage.src = object.src;
+                        newImage.onload = function () {
+                            a[0] = newImage.width;
+                            a[1] = newImage.height;
+                        }
+                    }
+                    return a;
+                }
+                //对图片进行裁剪并生成裁剪后图片url
+                cut_btn.onclick = function () {
+                    let source_img_width = getImageSourceSize(source_img)[0];
+                    let source_img_height = getImageSourceSize(source_img)[1];
+                    let x, y, x1, y1;
+                    if (source_img_width > img_box.clientWidth && source_img_height > img_box.clientHeight) {
+                        let bili = source_img_width/ img_box.clientWidth > source_img_height/ img_box.clientHeight ? source_img_width/ img_box.clientWidth : source_img_height/ img_box.clientHeight;
+                        x = cut_box.offsetLeft * bili;
+                        y = cut_box.offsetTop * bili;
+                        x1 = cut_box.offsetWidth * bili;
+                        y1 = cut_box.offsetHeight * bili;
+                    } else {
+                        x = cut_box.offsetLeft;
+                        y = cut_box.offsetTop;
+                        x1 = cut_box.offsetWidth;
+                        y1 = cut_box.offsetHeight;
+                    }
+                    let canvas = document.createElement("canvas");
+                    canvas.setAttribute("width", cuted_width);
+                    canvas.setAttribute("height", cuted_width);
+                    let ctx = canvas.getContext("2d");
+                    console.log(x, y, x1, y1);
+                    ctx.drawImage(source_img, x, y, x1, y1, 0, 0, cuted_width, cuted_width);
+                    dataUrl = canvas.toDataURL("image/png");
+                    cuted_img.setAttribute("src", dataUrl);
+                }; 
+            };
+            function preview(fileObj) {
+                var allowExtention = ".jpg,.bmp,.gif,.png,.jpeg"; //允许上传文件的后缀名document.getElementById("hfAllowPicSuffix").value;
+                var extention = fileObj.value.substring(fileObj.value.lastIndexOf(".") + 1).toLowerCase();
+                var browserVersion = window.navigator.userAgent.toUpperCase();
+                var imgPreviewId = document.getElementById("source-img");
+                if (fileObj.value === "") {
+                    imgPreviewId.setAttribute("src", "");
+                    imgPreviewId.setAttribute("alt", "");
+                } else if (parseInt(fileObj.files[0].size) >= 1024 * 1024) {
+                    console.log(parseInt(fileObj.files[0].size));
+                    imgPreviewId.setAttribute("src", "");
+                    imgPreviewId.setAttribute("alt", "图大显不出");
+                    fileObj.value = "";
+                } else {
+                    if (allowExtention.indexOf(extention) > -1) {
+                        if (fileObj.files) { //HTML5实现预览，兼容chrome、火狐7+等
+                            if (window.FileReader) {
+                                var reader = new FileReader();
+                                reader.onload = function (e) {
+                                    imgPreviewId.setAttribute("src", e.target.result);
+                                };
+                                reader.readAsDataURL(fileObj.files[0]);
+                            } else if (browserVersion.indexOf("SAFARI") > -1) {
+                                alert("不支持Safari6.0以下浏览器的图片预览!");
+                            }
+                        } else if (browserVersion.indexOf("MSIE") > -1) {
+                            if (browserVersion.indexOf("MSIE 6") > -1) { //ie6
+                                imgPreviewId.setAttribute("src", fileObj.value);
+                            } else { //ie[7-9]
+                                fileObj.select();
+                                fileObj.blur();
+                                if (browserVersion.indexOf("MSIE 9") > -1)
+                                    fileObj.blur(); //不加上document.selection.createRange().text在ie9会拒绝访问
+                            }
+                        } else if (browserVersion.indexOf("FIREFOX") > -1) { //firefox
+                            var firefoxVersion = parseFloat(browserVersion.toLowerCase().match(/firefox\/([\d.]+)/)[1]);
+                            if (firefoxVersion < 7) { //firefox7以下版本
+                                imgPreviewId.setAttribute("src", fileObj.files[0].getAsDataURL());
+                            } else { //firefox7.0+                    
+                                imgPreviewId.setAttribute("src", window.URL.createObjectURL(fileObj.files[0]));
+                            }
+                        } else {
+                            imgPreviewId.setAttribute("src", fileObj.value);
+                        }
+                    } else {
+                        fileObj.value = ""; //清空选中文件
+                        if (browserVersion.indexOf("MSIE") > -1) {
+                            fileObj.select();
+                            document.selection.clear();
+                        }
+                        fileObj.outerHTML = fileObj.outerHTML;
+                    }
+                }
+                return imgPreviewId.getAttribute("src");
+            }
+            ;
+        </script>
+    </body>
+</html>
