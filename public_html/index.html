@@ -10,7 +10,7 @@ and open the template in the editor.
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-            #img-box{max-width: 500px;max-height: 500px;position: relative;border:1px solid #333333;}
+            #img-box{max-width: 500px;max-height: 500px;position: relative;}
             #source-img{display: block;max-width: 100%;max-height: 100%;}
             #cut-box{position: absolute;width: 100px;height: 100px;background: rgba(255,255,255,.4);top: 0;left: 0;min-width: 100px;min-height: 100px;}
             #adjust-btn{position: absolute;top: 80px;left: 80px;bottom: 0;right: 0;width: 20px;height: 20px;cursor: se-resize;}
@@ -195,7 +195,6 @@ and open the template in the editor.
                         fileObj.outerHTML = fileObj.outerHTML;
                     }
                 }
-                return imgPreviewId.getAttribute("src");
             }
             ;
         </script>
